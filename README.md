@@ -39,6 +39,39 @@ EntraTopology is a **read-only Microsoft Entra inventory and topology engine** b
 
 > **Not a posture/compliance scanner or attack-path engine.** EntraTopology exposes deterministic tenant topology and evidence-backed context. It does not produce a tenant score or claim that observed access is unnecessary without an external expected-access baseline.
 
+## Screenshots
+
+<details>
+<summary><b>CLI Invoke run</b></summary>
+
+![CLI Invoke overview](Docs/Assets/cli-invoke-overview.png)
+</details>
+
+<details>
+<summary><b>Tenant overview</b></summary>
+
+![Tenant Overview](Docs/Assets/tenant-overview.png)
+</details>
+
+<details>
+<summary><b>Tenant Composition</b></summary>
+
+![Tenant Composition overview](Docs/Assets/tenant-composition-overview.png)
+</details>
+
+<details>
+<summary><b>Tenant Topology</b></summary>
+
+![Tenant Topology overview](Docs/Assets/tenant-topology-overview.png)
+</details>
+
+<details>
+<summary><b>Security Context & Recommendations</b></summary>
+
+![Security Context and Recommendations overview](Docs/Assets/security-context.png)
+</details>
+
+
 ## Capabilities
 
 EntraTopology currently models:
