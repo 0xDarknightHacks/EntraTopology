@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EntraTopology Recommendation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["SchemaVersion","Key","TenantId","SignalKey","TargetKey","Priority","Title","Action","Rationale","References"],
+  "properties": {
+    "SchemaVersion": {"const":"1.0.0"},
+    "Key": {"type":"string","minLength":1},
+    "TenantId": {"type":"string","minLength":1},
+    "SignalKey": {"type":"string","minLength":1},
+    "TargetKey": {"type":"string","minLength":1},
+    "Priority": {"enum":["Low","Medium","High","Critical"]},
+    "Title": {"type":"string","minLength":1},
+    "Action": {"type":"string","minLength":1},
+    "Rationale": {"type":"string","minLength":1},
+    "References": {"type":"array","items":{"type":"object","required":["Title","Url","Source"]}}
+  }
+}

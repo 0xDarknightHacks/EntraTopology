@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EntraTopology Signal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["SchemaVersion","Key","Id","TenantId","TargetKey","Type","Severity","Reason","State"],
+  "properties": {
+    "SchemaVersion": {"const":"1.1.0"},
+    "Key": {"type":"string","pattern":"^signal:"},
+    "Id": {"type":"string","minLength":1},
+    "TenantId": {"type":"string","minLength":1},
+    "TargetKey": {"type":"string","minLength":1},
+    "Type": {"type":"string","minLength":1},
+    "Severity": {"enum":["Info","Low","Medium","High","Critical"]},
+    "Reason": {"type":"string","minLength":1},
+    "State": {"type":"object"}
+  }
+}

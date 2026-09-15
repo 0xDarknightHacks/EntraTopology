@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EntraTopology Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["SchemaVersion","Key","Id","TenantId","Collector","Endpoint","SourceObjectId","Completeness","Fields","ObservedAtUtc"],
+  "properties": {
+    "SchemaVersion": {"const":"1.1.0"},
+    "Key": {"type":"string","pattern":"^evidence:"},
+    "Id": {"type":"string","minLength":1},
+    "TenantId": {"type":"string","minLength":1},
+    "Collector": {"type":"string","minLength":1},
+    "Endpoint": {"type":"string","minLength":1},
+    "SourceObjectId": {"type":"string","minLength":1},
+    "Completeness": {"enum":["Complete","Partial","NotRun","Unavailable"]},
+    "Fields": {"type":"object"},
+    "ObservedAtUtc": {"type":"string","format":"date-time"}
+  }
+}

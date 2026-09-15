@@ -1,0 +1,11 @@
+entra-topology-output/
+out/
+.entra-topology/
+tenant-snapshot.json
+tenant-topology.json
+tenant-topology.html
+run-diagnostics.jsonl
+*.log
+.DS_Store
+.vscode/
+.idea/

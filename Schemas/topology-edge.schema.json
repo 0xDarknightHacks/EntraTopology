@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EntraTopology Edge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["SchemaVersion","Key","Id","TenantId","From","To","Relationship","Qualifier","State","EvidenceKeys"],
+  "properties": {
+    "SchemaVersion": {"const":"1.1.0"},
+    "Key": {"type":"string","pattern":"^edge:"},
+    "Id": {"type":"string","minLength":1},
+    "TenantId": {"type":"string","minLength":1},
+    "From": {"type":"string","minLength":1},
+    "To": {"type":"string","minLength":1},
+    "Relationship": {"type":"string","minLength":1},
+    "Qualifier": {"type":"string"},
+    "State": {"type":"object"},
+    "EvidenceKeys": {"type":"array","minItems":1,"items":{"type":"string","pattern":"^evidence:"},"uniqueItems":true}
+  }
+}

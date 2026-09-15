@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EntraTopology Node",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["SchemaVersion","Key","Id","TenantId","Kind","DisplayName","Properties","EvidenceKeys"],
+  "properties": {
+    "SchemaVersion": {"const":"1.1.0"},
+    "Key": {"type":"string","minLength":1},
+    "Id": {"type":"string","minLength":1},
+    "TenantId": {"type":"string","minLength":1},
+    "Kind": {"type":"string","minLength":1},
+    "DisplayName": {"type":"string"},
+    "Properties": {"type":"object"},
+    "EvidenceKeys": {"type":"array","items":{"type":"string","pattern":"^evidence:"},"uniqueItems":true}
+  }
+}

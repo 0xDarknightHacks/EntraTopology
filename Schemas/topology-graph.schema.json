@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EntraTopology Graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["SchemaVersion","GraphId","TenantId","BuiltAtUtc","SourceSnapshotId","Nodes","Edges","Evidence","Signals","Recommendations","Coverage","Metadata"],
+  "properties": {
+    "SchemaVersion": {"const":"1.2.0"},
+    "GraphId": {"type":"string","minLength":1},
+    "TenantId": {"type":"string","minLength":1},
+    "BuiltAtUtc": {"type":"string","format":"date-time"},
+    "SourceSnapshotId": {"type":"string","minLength":1},
+    "Nodes": {"type":"array","items":{"type":"object","required":["Key","Id","TenantId","Kind","DisplayName","Properties","EvidenceKeys"]}},
+    "Edges": {"type":"array","items":{"type":"object","required":["Key","From","To","Relationship","State","EvidenceKeys"]}},
+    "Evidence": {"type":"array","items":{"type":"object","required":["Key","Collector","Endpoint","Completeness"]}},
+    "Signals": {"type":"array","items":{"type":"object","required":["Key","TargetKey","Type","Severity","Reason"]}},
+    "Recommendations": {"type":"array","items":{"type":"object","required":["Key","SignalKey","TargetKey","Priority","Title","Action","Rationale","References"]}},
+    "Coverage": {"type":"array","items":{"type":"object","required":["Collector","Status","RequiredPermissions","Capabilities","Warnings","Metrics"]}},
+    "Metadata": {
+      "type":"object",
+      "required":["NodeCount","EdgeCount","UnresolvedDirectoryObjectCount","AppRoleAssignmentCount","ResolvedAppRoleAssignmentCount","UnresolvedAppRoleAssignmentCount","GraphCallsAfterSnapshot","SignalCount","RecommendationCount"]
+    }
+  }
+}
