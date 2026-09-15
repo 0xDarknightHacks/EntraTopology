@@ -8,6 +8,8 @@ $global:NewTestBatchResult = {
     }
 }
 
+AfterAll { Remove-Variable -Name NewTestBatchResult -Scope Global -ErrorAction SilentlyContinue }
+
 Describe 'Collector capability and diagnostics behavior' {
     InModuleScope EntraTopology {
         It 'keeps signInActivity optional and declares AuditLog.Read.All explicitly' {
