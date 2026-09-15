@@ -14,6 +14,10 @@ Correctness patch for Microsoft Graph group relationship coverage.
 - Mark group ownership coverage partial for synchronized and mail-enabled non-Microsoft-365 group types where Microsoft Graph does not guarantee owner availability.
 - Keep `ownerlessObject` generation fail-closed whenever group-owner coverage is partial.
 
+### Added
+
+- Add `Invoke-EntraTopologyTestData.ps1` for manifest-driven synthetic topology validation in dedicated development tenants.
+
 ## [1.0.0] - 2026-09-15
 
 First stable public release.

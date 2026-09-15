@@ -121,6 +121,8 @@ Optional enrichment includes sign-in activity and risky-user context when the ne
 
 Normal EntraTopology operation uses Microsoft Graph read permissions. Graph write operations are outside the product's intended runtime model.
 
+The root `Invoke-EntraTopologyTestData.ps1` helper is a lab-only exception for seeding and removing deterministic synthetic validation data in dedicated development tenants. It is not part of the normal collection, topology, reporting or export pipeline, and cleanup remains manifest-driven.
+
 ### Coverage-aware interpretation
 
 A failed or permission-gated read must propagate as explicit coverage. This prevents downstream signals from treating missing data as proof of absence.
