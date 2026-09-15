@@ -107,3 +107,16 @@ Describe 'Topology security-context enrichment' {
         ($graph.Signals.Type -join ' ') | Should -Not -Match 'overPrivileged'
     }
 }
+
+Describe 'Group owner coverage fail-closed behavior' {
+    It 'does not emit ownerless group signals when group-owner coverage is partial' {
+        $snapshot=[pscustomobject]@{TenantId='tenant';SnapshotId='group-owner-partial';CollectedAtUtc='2026-01-01T00:00:00Z';Collectors=@(
+            [pscustomobject]@{Name='Groups';Status='Partial';RequiredPermissions=@('Group.Read.All');Warnings=@('Owner visibility limited');Metrics=@{};Evidence=@();Capabilities=@(
+                [pscustomobject]@{Name='GroupInventory';Status='Complete';RequiredPermissions=@('Group.Read.All');Endpoints=@();Warnings=@()},
+                [pscustomobject]@{Name='GroupOwners';Status='Partial';RequiredPermissions=@('Group.Read.All');Endpoints=@();Warnings=@('Owner visibility limited')}
+            );Objects=@([pscustomobject]@{Kind='group';Object=[pscustomobject]@{id='g1';displayName='Group One'}});Relations=@()}
+        )}
+        $graph=New-EntraTopologyGraph -Snapshot $snapshot -IncludeSignals
+        @($graph.Signals|Where-Object Type -eq 'ownerlessObject').Count | Should -Be 0
+    }
+}

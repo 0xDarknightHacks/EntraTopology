@@ -2,6 +2,18 @@
 
 All notable changes to EntraTopology are documented in this file.
 
+## [1.0.1] - 2026-09-15
+
+Correctness patch for Microsoft Graph group relationship coverage.
+
+### Fixed
+
+- Recover direct service-principal group memberships through the supported v1.0 `servicePrincipals/{id}/memberOf` relationship because `groups/{id}/members` can omit service principals.
+- Recover service-principal group ownership through the supported v1.0 `servicePrincipals/{id}/ownedObjects` relationship because `groups/{id}/owners` can omit service principals.
+- Mark group membership coverage partial when delegated hidden-membership visibility cannot be proven without `Member.Read.Hidden`.
+- Mark group ownership coverage partial for synchronized and mail-enabled non-Microsoft-365 group types where Microsoft Graph does not guarantee owner availability.
+- Keep `ownerlessObject` generation fail-closed whenever group-owner coverage is partial.
+
 ## [1.0.0] - 2026-09-15
 
 First stable public release.

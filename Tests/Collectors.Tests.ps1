@@ -1,5 +1,13 @@
 Import-Module (Join-Path $PSScriptRoot '..' 'EntraTopology.psd1') -Force
 
+$global:NewTestBatchResult = {
+    param([object]$Request,[object[]]$Items=@(),[string]$Status='Success',[int]$StatusCode=200)
+    [pscustomobject]@{
+        Request=$Request;SourceEndpoint=[string]$Request.Uri;LastEndpoint=[string]$Request.Uri;Status=$Status;StatusCode=$StatusCode;
+        Items=@($Items);Error=$null;ErrorCode=$null;ErrorMessage=$null;RequestId='req-test';AttemptCount=1;RetryCount=0;PageCount=1
+    }
+}
+
 Describe 'Collector capability and diagnostics behavior' {
     InModuleScope EntraTopology {
         It 'keeps signInActivity optional and declares AuditLog.Read.All explicitly' {
@@ -80,3 +88,156 @@ Describe 'Collector capability and diagnostics behavior' {
         }
     }
 }
+
+Describe 'Group relationship completeness hardening' {
+    InModuleScope EntraTopology {
+        It 'recovers service-principal group membership and ownership through supported v1.0 reverse relationships' {
+            Mock Test-EntraTopologyPermission { $true }
+            Mock Test-EntraTopologyMayProbePermission { $true }
+            Mock Get-EntraTopologyGraphContext { [pscustomobject]@{AuthType='AppOnly';Scopes=@()} }
+            Mock Invoke-EntraTopologyGraphRequest {
+                param($Uri,$RequiredPermission,$Telemetry)
+                if($Uri -like '/v1.0/groups*'){
+                    return [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='g1';displayName='Group One';groupTypes=@();mailEnabled=$false;securityEnabled=$true;visibility='Private';onPremisesSyncEnabled=$false});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='groups';RetryCount=0;PageCount=1}
+                }
+                [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='sp1'});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='sps';RetryCount=0;PageCount=1}
+            }
+            Mock Invoke-EntraTopologyGraphBatch {
+                param($Requests,$BatchSize,$Telemetry)
+                foreach($request in @($Requests)){
+                    $items=@()
+                    if($request.Uri -like '/servicePrincipals/sp1/memberOf*'){$items=@([pscustomobject]@{id='g1';displayName='Group One'})}
+                    elseif($request.Uri -like '/servicePrincipals/sp1/ownedObjects*'){$items=@([pscustomobject]@{id='g1';displayName='Group One'})}
+                    & $global:NewTestBatchResult -Request $request -Items $items
+                }
+            }
+
+            $result=Get-EntraTopologyGroups -TenantId 'tenant'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupMembers')[0]).Status | Should -Be 'Complete'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupOwners')[0]).Status | Should -Be 'Complete'
+            @($result.Relations|Where-Object{$_.FromId -eq 'sp1' -and $_.ToId -eq 'g1' -and $_.Relationship -eq 'memberOf'}).Count | Should -Be 1
+            @($result.Relations|Where-Object{$_.FromId -eq 'sp1' -and $_.ToId -eq 'g1' -and $_.Relationship -eq 'owns'}).Count | Should -Be 1
+            $result.Metrics.ServicePrincipalSupplementRelationCount | Should -Be 2
+        }
+
+
+
+        It 'deduplicates a service-principal relation if Graph later returns it from both directions' {
+            Mock Test-EntraTopologyPermission { $true }
+            Mock Test-EntraTopologyMayProbePermission { $true }
+            Mock Get-EntraTopologyGraphContext { [pscustomobject]@{AuthType='AppOnly';Scopes=@()} }
+            Mock Invoke-EntraTopologyGraphRequest {
+                param($Uri,$RequiredPermission,$Telemetry)
+                if($Uri -like '/v1.0/groups*'){
+                    return [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='g1';displayName='Group One';groupTypes=@();mailEnabled=$false;securityEnabled=$true;visibility='Private';onPremisesSyncEnabled=$false});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='groups';RetryCount=0;PageCount=1}
+                }
+                [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='sp1'});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='sps';RetryCount=0;PageCount=1}
+            }
+            Mock Invoke-EntraTopologyGraphBatch {
+                param($Requests,$BatchSize,$Telemetry)
+                foreach($request in @($Requests)){
+                    $items=@()
+                    if($request.Uri -like '/groups/g1/members*'){$items=@([pscustomobject]@{id='sp1';displayName='Service Principal One'})}
+                    elseif($request.Uri -like '/servicePrincipals/sp1/memberOf*'){$items=@([pscustomobject]@{id='g1';displayName='Group One'})}
+                    & $global:NewTestBatchResult -Request $request -Items $items
+                }
+            }
+
+            $result=Get-EntraTopologyGroups -TenantId 'tenant'
+            @($result.Relations|Where-Object{$_.FromId -eq 'sp1' -and $_.ToId -eq 'g1' -and $_.Relationship -eq 'memberOf'}).Count | Should -Be 1
+            $result.Metrics.ServicePrincipalSupplementRelationCount | Should -Be 0
+        }
+
+        It 'fails closed when the service-principal inventory probe is denied by Graph' {
+            Mock Test-EntraTopologyPermission { $true }
+            Mock Test-EntraTopologyMayProbePermission { $true }
+            Mock Get-EntraTopologyGraphContext { [pscustomobject]@{AuthType='AppOnly';Scopes=@()} }
+            Mock Invoke-EntraTopologyGraphRequest {
+                param($Uri,$RequiredPermission,$Telemetry)
+                if($Uri -like '/v1.0/groups*'){
+                    return [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='g1';displayName='Group One';groupTypes=@();mailEnabled=$false;securityEnabled=$true;visibility='Private';onPremisesSyncEnabled=$false});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='groups';RetryCount=0;PageCount=1}
+                }
+                [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='InsufficientPermission';StatusCode=403;Items=@();CollectionTime='';Limitations=@('Insufficient privileges');ErrorCode='Authorization_RequestDenied';ErrorMessage='Insufficient privileges';RequestId='sps-denied';RetryCount=0;PageCount=0}
+            }
+            Mock Invoke-EntraTopologyGraphBatch {
+                param($Requests,$BatchSize,$Telemetry)
+                foreach($request in @($Requests)){& $global:NewTestBatchResult -Request $request}
+            }
+
+            $result=Get-EntraTopologyGroups -TenantId 'tenant'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupMembers')[0]).Status | Should -Be 'Partial'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupOwners')[0]).Status | Should -Be 'Partial'
+            ($result.Warnings -join ' ') | Should -Match 'HTTP 403'
+            ($result.Warnings -join ' ') | Should -Match 'Insufficient privileges'
+        }
+
+        It 'fails closed when service-principal reverse correlation cannot be performed' {
+            Mock Test-EntraTopologyPermission { $true }
+            Mock Test-EntraTopologyMayProbePermission { $false }
+            Mock Invoke-EntraTopologyGraphRequest {
+                param($Uri,$RequiredPermission,$Telemetry)
+                [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='g1';displayName='Group One';groupTypes=@();mailEnabled=$false;securityEnabled=$true;visibility='Private';onPremisesSyncEnabled=$false});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='groups';RetryCount=0;PageCount=1}
+            }
+            Mock Invoke-EntraTopologyGraphBatch {
+                param($Requests,$BatchSize,$Telemetry)
+                foreach($request in @($Requests)){& $global:NewTestBatchResult -Request $request}
+            }
+
+            $result=Get-EntraTopologyGroups -TenantId 'tenant'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupMembers')[0]).Status | Should -Be 'Partial'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupOwners')[0]).Status | Should -Be 'Partial'
+            ($result.Warnings -join ' ') | Should -Match 'service-principal membership and ownership omissions'
+        }
+
+        It 'marks delegated hidden-membership visibility partial without Member.Read.Hidden' {
+            Mock Test-EntraTopologyPermission {
+                param($AnyOf)
+                return -not ($AnyOf -contains 'Member.Read.Hidden')
+            }
+            Mock Test-EntraTopologyMayProbePermission { $true }
+            Mock Get-EntraTopologyGraphContext { [pscustomobject]@{AuthType='Delegated';Scopes=@('Group.Read.All','Application.Read.All')} }
+            Mock Invoke-EntraTopologyGraphRequest {
+                param($Uri,$RequiredPermission,$Telemetry)
+                if($Uri -like '/v1.0/groups*'){
+                    return [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@([pscustomobject]@{id='g1';displayName='Hidden Group';groupTypes=@('Unified');mailEnabled=$true;securityEnabled=$true;visibility='HiddenMembership';onPremisesSyncEnabled=$false});CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='groups';RetryCount=0;PageCount=1}
+                }
+                [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@();CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='sps';RetryCount=0;PageCount=1}
+            }
+            Mock Invoke-EntraTopologyGraphBatch {
+                param($Requests,$BatchSize,$Telemetry)
+                foreach($request in @($Requests)){& $global:NewTestBatchResult -Request $request}
+            }
+
+            $result=Get-EntraTopologyGroups -TenantId 'tenant'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupMembers')[0]).Status | Should -Be 'Partial'
+            $result.Metrics.HiddenMembershipGroupCount | Should -Be 1
+            ($result.Warnings -join ' ') | Should -Match 'Member.Read.Hidden'
+        }
+
+        It 'marks group ownership partial for synchronized or mail-enabled non-Microsoft-365 group types' {
+            Mock Test-EntraTopologyPermission { $true }
+            Mock Test-EntraTopologyMayProbePermission { $true }
+            Mock Get-EntraTopologyGraphContext { [pscustomobject]@{AuthType='AppOnly';Scopes=@()} }
+            Mock Invoke-EntraTopologyGraphRequest {
+                param($Uri,$RequiredPermission,$Telemetry)
+                if($Uri -like '/v1.0/groups*'){
+                    return [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@(
+                        [pscustomobject]@{id='g1';displayName='Synced';groupTypes=@();mailEnabled=$false;securityEnabled=$true;visibility='Private';onPremisesSyncEnabled=$true},
+                        [pscustomobject]@{id='g2';displayName='Distribution';groupTypes=@();mailEnabled=$true;securityEnabled=$false;visibility=$null;onPremisesSyncEnabled=$false}
+                    );CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='groups';RetryCount=0;PageCount=1}
+                }
+                [pscustomobject]@{SourceEndpoint=$Uri;RequiredPermission=$RequiredPermission;Status='Success';StatusCode=200;Items=@();CollectionTime='';Limitations=@();ErrorCode=$null;ErrorMessage=$null;RequestId='sps';RetryCount=0;PageCount=1}
+            }
+            Mock Invoke-EntraTopologyGraphBatch {
+                param($Requests,$BatchSize,$Telemetry)
+                foreach($request in @($Requests)){& $global:NewTestBatchResult -Request $request}
+            }
+
+            $result=Get-EntraTopologyGroups -TenantId 'tenant'
+            (@($result.Capabilities|Where-Object Name -eq 'GroupOwners')[0]).Status | Should -Be 'Partial'
+            $result.Metrics.OwnerUnsupportedGroupCount | Should -Be 2
+            ($result.Warnings -join ' ') | Should -Match 'does not guarantee owner availability'
+        }
+    }
+}
+

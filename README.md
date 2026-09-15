@@ -110,6 +110,7 @@ Grant only the permissions needed for the capabilities you intend to collect.
 |---|---|
 | Users | `User.Read.All` |
 | Groups | `Group.Read.All` |
+| Hidden-membership groups *(optional, when present)* | `Member.Read.Hidden` |
 | Applications / service principals | `Application.Read.All` |
 | Devices | `Device.Read.All` |
 | Directory roles | `RoleManagement.Read.Directory` |
@@ -118,6 +119,8 @@ Grant only the permissions needed for the capabilities you intend to collect.
 | Risky-user context *(optional)* | `IdentityRiskyUser.Read.All` |
 
 `IdentityRiskyUser.Read.All` also depends on the applicable Microsoft Entra ID Protection licensing. When an optional capability is unavailable, EntraTopology reports coverage as `NotRun`, `Partial`, or `Unavailable` rather than treating missing visibility as an empty successful result.
+
+For complete group topology, EntraTopology also correlates service-principal membership and ownership through supported Microsoft Graph v1.0 reverse relationships. `Application.Read.All` or `Directory.Read.All` must therefore be available to close the known v1.0 service-principal omissions. `Member.Read.Hidden` is required only when hidden-membership groups exist; without it, group-membership coverage is reported as `Partial` rather than falsely `Complete`.
 
 For tenant-wide delegated OAuth grants, `Directory.Read.All` is the baseline read permission used by EntraTopology. Higher-privilege alternatives such as `DelegatedPermissionGrant.ReadWrite.All` or `Directory.ReadWrite.All` are accepted when already present, but are not required for normal read-only operation.
 

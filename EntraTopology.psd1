@@ -1,6 +1,6 @@
 @{
     RootModule        = 'EntraTopology.psm1'
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.0.1'
     GUID              = '9f7f25a4-6f56-4fd2-8d24-8a1a0cb6c7fe'
     Author            = 'EntraTopology contributors'
     CompanyName       = 'Community'
