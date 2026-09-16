@@ -72,6 +72,17 @@ EntraTopology is a **read-only Microsoft Entra inventory and topology engine** b
 ![Security Context and Recommendations overview](Docs/Assets/security-context.png)
 </details>
 
+<details>
+<summary><b>Change Notification Email</b></summary>
+
+![Change Notification Email overview](Docs/Assets/change-notification.png)
+</details>
+
+<details>
+<summary><b>Tenant Change Detection</b></summary>
+
+![Tenant Change Detection overview](Docs/Assets/tenant-change-detection.png)
+</details>
 
 ## Capabilities
 
