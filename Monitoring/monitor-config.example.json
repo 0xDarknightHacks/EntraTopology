@@ -1,4 +1,5 @@
 {
+  "ModuleManifestPath": "<path>\\EntraTopology.psd1",
   "TenantId": "<tenant-id>",
   "ClientId": "<application-client-id>",
   "CertificateThumbprint": "<certificate-thumbprint>",
