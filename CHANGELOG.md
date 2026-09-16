@@ -2,9 +2,16 @@
 
 All notable changes to EntraTopology are documented in this file.
 
-## [1.0.1] - 2026-09-15
+## [1.0.1] - 2026-09-16
 
-Correctness patch for Microsoft Graph group relationship coverage.
+Correctness and release-readiness patch for Microsoft Graph relationship coverage, semantic comparison stability, and optional monitoring orchestration.
+
+### Added
+
+- Add optional scheduled monitoring under `Monitoring/` as an orchestration layer over the normal EntraTopology collection and semantic comparison pipeline.
+- Add certificate, ProgramData initialization, and scheduled-task helpers for monitor deployment while keeping tenant runtime state outside the module surface.
+- Add self-contained HTML administrator notifications with event grouping/coalescing, bounded detail, and configurable tenant display/presentation options.
+- Add `Invoke-EntraTopologyTestData.ps1` for manifest-driven synthetic topology validation in dedicated development tenants.
 
 ### Fixed
 
@@ -13,10 +20,12 @@ Correctness patch for Microsoft Graph group relationship coverage.
 - Mark group membership coverage partial when delegated hidden-membership visibility cannot be proven without `Member.Read.Hidden`.
 - Mark group ownership coverage partial for synchronized and mail-enabled non-Microsoft-365 group types where Microsoft Graph does not guarantee owner availability.
 - Keep `ownerlessObject` generation fail-closed whenever group-owner coverage is partial.
-
-### Added
-
-- Add `Invoke-EntraTopologyTestData.ps1` for manifest-driven synthetic topology validation in dedicated development tenants.
+- Canonicalize comparison object-property ordering and semantic collection ordering so serialization or Graph-return ordering changes do not create false topology drift.
+- Normalize equivalent ISO-8601 timestamp precision during comparison.
+- Suppress volatile credential-expiry countdown/reason churn while preserving real expiry timestamp, severity, and expiry-window changes.
+- Fail closed when monitor baseline schema, collection policy, or baseline policy metadata cannot be verified.
+- Validate monitor Graph authentication prerequisites before SYSTEM scheduled-task registration and log prerequisite/import failures after monitor state initialization.
+- Harden release hygiene checks for monitoring runtime artifacts, tenant outputs, logs, certificates, and private-key material.
 
 ## [1.0.0] - 2026-09-15
 

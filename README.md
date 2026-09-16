@@ -35,6 +35,7 @@ EntraTopology is a **read-only Microsoft Entra inventory and topology engine** b
 | Evidence | Provenance references connecting topology relationships and observations to collection evidence |
 | Offline exploration | Self-contained HTML topology explorer with filtering, drill-down, Quick Answers, relationship flow and Entra portal navigation |
 | Query and comparison | Local node/path queries and semantic graph comparison across versions |
+| Optional monitoring | Scheduled certificate-authenticated collection, semantic drift comparison and severity-based notification |
 | Interoperability | JSON, GraphML and OpenGraph-shaped exports |
 
 > **Not a posture/compliance scanner or attack-path engine.** EntraTopology exposes deterministic tenant topology and evidence-backed context. It does not produce a tenant score or claim that observed access is unnecessary without an external expected-access baseline.
@@ -91,7 +92,8 @@ EntraTopology currently models:
 - optional Microsoft first-party enterprise-application exclusion while retaining referenced API-resource nodes;
 - optional `signInActivity` and risky-user enrichment;
 - coverage-aware security signals and deterministic recommendations;
-- runtime telemetry, diagnostics and evidence provenance.
+- runtime telemetry, diagnostics and evidence provenance;
+- optional scheduled monitoring from the repository `Monitoring/` directory.
 
 The HTML report is topology-first: compact inventory composition, relationship-flow visualization, deterministic administrator Quick Answers, interactive topology inspection, grouped security context, coverage state, and collapsible runtime/evidence detail.
 
@@ -99,6 +101,7 @@ The HTML report is topology-first: compact inventory composition, relationship-f
 
 - PowerShell 7.2 or later
 - `Microsoft.Graph.Authentication` 2.0.0 or later
+- Scheduled monitoring requires `Microsoft.Graph.Authentication` 2.33.0 or later installed with `-Scope AllUsers` because the task runs as `SYSTEM`
 - A Microsoft Entra application registration for app-only use, or a supported delegated Graph session for development
 - For stored client-secret authentication: `Microsoft.PowerShell.SecretManagement` and a registered vault such as `Microsoft.PowerShell.SecretStore`
 
@@ -234,7 +237,13 @@ Find-EntraTopologyPath -Graph $graph -From '<node-key>' -To '<node-key>'
 
 ### Compare topology versions
 
-Use `Compare-EntraTopologyGraph` with two canonical graph versions to identify semantic topology changes without treating evidence/provenance churn as topology drift.
+Use `Compare-EntraTopologyGraph` with two canonical graph versions to identify semantic topology changes without treating evidence/provenance churn, object-property ordering, or equivalent ISO-8601 timestamp formatting as topology drift.
+
+### Monitor topology periodically
+
+The optional [`Monitoring/`](Monitoring/) directory is a scheduled monitoring/notification layer over the canonical EntraTopology collection and semantic comparison pipeline. It compares each healthy graph to the last promoted baseline and can notify administrators only when changes meet a configured severity threshold. Runtime state is created under `C:\ProgramData\EntraTopologyMonitor` and remains outside the repository.
+
+See [Monitoring/README.md](Monitoring/README.md) for certificate, ProgramData, Exchange Application RBAC, and Scheduled Task setup.
 
 ## Interactive report
 
@@ -295,7 +304,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting and operational secur
 
 ## Architecture
 
-The implementation is separated into Graph transport, collectors, snapshot handling, normalization, signals, recommendations, query, comparison, export and presentation layers. Raw Graph calls stay at the collection/transport boundary; downstream topology processing remains offline.
+The implementation is separated into Graph transport, collectors, snapshot handling, normalization, signals, recommendations, query, comparison, export and presentation layers. Raw Graph calls stay at the collection/transport boundary; downstream topology processing remains offline. Optional scheduled monitoring is an orchestration layer under `Monitoring/` that reuses these public module contracts rather than adding a second collection or drift engine.
 
 See [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md) for the architectural contract.
 
@@ -344,6 +353,7 @@ EntraTopology/
 ├── Public/
 ├── Schemas/
 ├── Scripts/
+├── Monitoring/
 ├── Tests/
 ├── Docs/
 ├── README.md

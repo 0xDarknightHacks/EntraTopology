@@ -43,6 +43,8 @@ Both should complete successfully.
 
 Collector changes should include tests for successful collection and relevant failure/coverage behavior. Reporting changes should preserve the self-contained offline report and include focused regression tests for the changed contract or interaction.
 
+Monitoring changes should remain an orchestration layer over the public module contracts, keep tenant runtime state under `C:\ProgramData\EntraTopologyMonitor`, and include regression coverage for comparison/noise-suppression behavior.
+
 ## Pull requests
 
 Keep pull requests focused. Include:

@@ -1,0 +1,16 @@
+{
+  "TenantId": "<tenant-id>",
+  "ClientId": "<application-client-id>",
+  "CertificateThumbprint": "<certificate-thumbprint>",
+  "StateDirectory": "C:\\ProgramData\\EntraTopologyMonitor",
+  "ExcludeMicrosoftFirstPartyApps": true,
+  "NotifyAtOrAbove": "High",
+  "Notification": {
+    "Enabled": false,
+    "SenderUserId": "",
+    "Recipients": [],
+    "TenantDisplayName": "",
+    "MaxItems": 12,
+    "SaveToSentItems": true
+  }
+}

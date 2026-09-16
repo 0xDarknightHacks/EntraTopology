@@ -9,3 +9,17 @@ run-diagnostics.jsonl
 .DS_Store
 .vscode/
 .idea/
+
+# Monitoring runtime artifacts (C:\ProgramData\EntraTopologyMonitor)
+baseline-topology.json
+last-delta.json
+last-alert.json
+monitor-state.json
+monitor-config.json
+task-output.log
+*.cer
+*.pfx
+*.p12
+*.pem
+*.key
+run-*/

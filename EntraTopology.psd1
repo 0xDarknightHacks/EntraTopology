@@ -5,7 +5,7 @@
     Author            = 'EntraTopology contributors'
     CompanyName       = 'Community'
     Copyright         = '(c) EntraTopology contributors. MIT License.'
-    Description       = 'Read-only Microsoft Entra tenant inventory, topology, security-context, and recommendation engine.'
+    Description       = 'Read-only Microsoft Entra tenant inventory, relationship topology, security context, and offline exploration.'
     PowerShellVersion = '7.2'
     RequiredModules   = @(
         @{ ModuleName = 'Microsoft.Graph.Authentication'; ModuleVersion = '2.0.0' }

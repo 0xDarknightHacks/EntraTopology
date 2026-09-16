@@ -37,7 +37,7 @@ The project:
 - treats missing/failed collection coverage explicitly rather than silently assuming absence;
 - produces local artifacts that may contain sensitive tenant metadata.
 
-Generated snapshots, topology files, reports and diagnostics should therefore be handled as sensitive administrative data and must not be committed to source control or published with releases.
+Generated snapshots, topology files, reports, diagnostics, monitoring baselines, deltas, alerts, logs and tenant-specific monitor configuration should therefore be handled as sensitive administrative data and must not be committed to source control or published with releases. The optional monitor stores these artifacts under `C:\ProgramData\EntraTopologyMonitor` and its initializer restricts that directory to `SYSTEM` and local Administrators.
 
 ## Credentials and local configuration
 
@@ -49,6 +49,7 @@ Never commit:
 - SecretStore/SecretManagement vault contents;
 - tenant-specific authentication configuration that should remain private;
 - tenant snapshots, topology exports, reports or diagnostics.
+- monitoring baselines, deltas, alerts, logs, or tenant-specific `monitor-config.json`.
 
 Use PowerShell SecretManagement/SecretStore or another appropriate secret-management solution for secrets.
 

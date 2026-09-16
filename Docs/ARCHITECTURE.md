@@ -87,7 +87,13 @@ Query primitives operate on the canonical graph locally. They support object ins
 
 Comparison operates on semantic graph identity/state. Evidence/provenance observation churn is excluded where it does not represent a meaningful topology change.
 
-### 10. Export and presentation
+### 10. Monitoring orchestration
+
+Optional scheduled monitoring lives under `Monitoring/` and is deliberately outside the module surface. It authenticates, invokes the normal collection workflow, calls the canonical semantic comparison engine, maps selected changes to notification severities, and promotes a baseline only after a healthy successful run.
+
+Monitoring does not add a second collector or a second drift model. Tenant-specific baseline/configuration/delta/log state lives under `C:\ProgramData\EntraTopologyMonitor`, not in the repository.
+
+### 11. Export and presentation
 
 The export layer supports structured graph formats. The reporting layer generates a self-contained offline HTML explorer with composition summaries, relationship flow, Quick Answers, interactive topology, grouped security context, evidence, coverage and runtime diagnostics.
 
@@ -133,7 +139,7 @@ Normalization, signals, recommendations, query, comparison, export and reporting
 
 ### Tenant artifacts
 
-Snapshots, topology exports, HTML reports and diagnostics can contain sensitive tenant metadata. They are runtime artifacts, not source files, and must not be committed or included in public release archives.
+Snapshots, topology exports, HTML reports, diagnostics, monitor configuration, monitoring baselines, deltas, alerts and logs can contain sensitive tenant metadata. They are runtime artifacts, not source files, and must not be committed or included in public release archives. Monitoring runtime state belongs under `C:\ProgramData\EntraTopologyMonitor`.
 
 ## Extension principles
 
