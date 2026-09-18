@@ -2,45 +2,94 @@
 
 # EntraTopology
 
-**Read-only Microsoft Entra tenant topology with security context**
+**See how Microsoft Entra objects connect — and what changed**
 
 [![Release](https://img.shields.io/badge/release-v1.0.1-blue)](#)
 [![PowerShell](https://img.shields.io/badge/PowerShell-7.2%2B-5391FE?logo=powershell)](#requirements)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-EntraTopology collects Microsoft Entra tenant state into a portable snapshot, correlates objects into a canonical relationship graph, enriches that graph with evidence-backed security context, and produces a self-contained offline topology explorer.
+EntraTopology turns tenant-wide Entra objects and relationships into an interactive map you can explore, save, compare, and optionally monitor over time.
 
-**Collect once. Build the topology offline. Explore relationships with context.**
+**Topology = understand connections and change across the tenant, rather than inspecting one object at a time.**
 
-[Quick start](#quick-start) · [Capabilities](#capabilities) · [Permissions](#permissions) · [Usage](#usage) · [Security model](#security-model)
+[Quick start](#quick-start) · [Why use it](#why-use-it) · [Screenshots](#screenshots) · [Permissions](#permissions) · [Usage](#usage)
 
 </div>
 
 ---
 
-## What it is
+## Why use it
 
-EntraTopology is a **read-only Microsoft Entra inventory and topology engine** built with PowerShell and Microsoft Graph. Its primary product is the tenant graph: **what exists, how objects relate, and which objects or relationships carry useful operational or security context**.
+Microsoft Entra already lets you open users, groups, applications, enterprise applications, devices, and roles individually. What it does not give you as a single workflow is a tenant-wide relationship map that you can explore offline and compare over time. Understanding how several objects connect can therefore mean moving through many pages or querying Graph repeatedly.
 
-### Collect → Correlate → Explore
+EntraTopology collects the tenant once, builds those relationships into a graph, and gives you a self-contained explorer for answering tenant-wide connection and change questions.
 
-| Capability | What it provides |
-|---|---|
-| Portable snapshots | Collected tenant state that can be processed again without Microsoft Graph |
-| Canonical topology | Stable nodes and relationship edges across users, groups, applications, service principals, devices and directory roles |
-| Application topology | App registrations, enterprise applications, credentials, requested permissions, granted app roles and delegated consent |
-| Identity context | Ownership, membership, registered ownership and active directory-role relationships |
-| Security context | Coverage-aware observations such as ownerless objects, privileged ownership, risky identities, stale devices and credential expiry |
-| Recommendations | Deterministic remediation guidance linked to supported security-context signals |
-| Evidence | Provenance references connecting topology relationships and observations to collection evidence |
-| Offline exploration | Self-contained HTML topology explorer with filtering, drill-down, Quick Answers, relationship flow and Entra portal navigation |
-| Query and comparison | Local node/path queries and semantic graph comparison across versions |
-| Optional monitoring | Scheduled certificate-authenticated collection, semantic drift comparison and severity-based notification |
-| Interoperability | JSON, GraphML and OpenGraph-shaped exports |
+## What it adds beyond native Entra
 
-> **Not a posture/compliance scanner or attack-path engine.** EntraTopology exposes deterministic tenant topology and evidence-backed context. It does not produce a tenant score or claim that observed access is unnecessary without an external expected-access baseline.
+It does **not** replace the Entra admin center. It adds a topology and change-analysis layer around Entra data:
+
+- consolidates users, groups, applications, service principals, devices, roles, ownership, membership, permissions, and consent relationships into one graph;
+- visualizes those relationships instead of requiring object-by-object navigation;
+- lets you query nodes and paths locally after collection;
+- keeps portable snapshots for offline exploration and repeatable comparison;
+- compares graph versions and can optionally monitor meaningful changes;
+- adds coverage-aware security context without turning the topology into a generic posture score.
+
+## Example investigation
+
+Suppose you want to understand **how a privileged group, an application, its enterprise application, owners, permissions, and related users fit together**. In native Entra, you would normally move between several object pages and mentally reconstruct the relationship chain. EntraTopology builds the graph once so you can explore those links in one place, then compare a later snapshot to see what changed.
+
+## Questions this tool helps answer
+
+- What users, groups, applications, service principals, devices, roles, and credentials exist in the collected tenant state?
+- How are those objects connected through membership, ownership, permissions, consent, registration, or role assignment?
+- Is there a path between two Entra objects, and what relationships make up that path?
+- Which objects or relationships carry useful security context such as missing ownership, risky identity state, stale devices, or credential expiry?
+- What changed between two topology snapshots?
+- Can I explore the same tenant state later without querying Microsoft Graph again?
+
+## Quick start
+
+Clone the repository after publication:
+
+```powershell
+git clone https://github.com/0xDarknightHacks/EntraTopology.git
+cd .\EntraTopology
+
+Install-Module Microsoft.Graph.Authentication -Scope CurrentUser
+Import-Module .\EntraTopology.psd1 -Force
+```
+
+For the preferred stored app-only workflow, configure identifiers in:
+
+```text
+~/.entra-topology/config.json
+```
+
+Example:
+
+```json
+{
+  "TenantId": "<tenant-id>",
+  "ClientId": "<application-client-id>"
+}
+```
+
+Do **not** store the client secret in that file. By default, EntraTopology reads `EntraTopologyGraphClientSecret` from the SecretManagement vault `EntraTopologyVault`.
+
+Run the complete workflow:
+
+```powershell
+Invoke-EntraTopology -ExcludeMicrosoftFirstPartyApps -Verbose
+```
+
+The command connects when needed, collects the tenant, builds the topology, attaches security context and recommendations, writes artifacts, generates the report, and disconnects only a Graph session it created.
+
+> Never commit tenant identifiers, secrets, snapshots, topology exports, HTML reports, diagnostics, local authentication configuration, or other tenant-derived runtime artifacts.
 
 ## Screenshots
+
+These views show the main topology workflow: tenant overview → relationship exploration → security context → change detection.
 
 <details>
 <summary><b>CLI Invoke run</b></summary>
@@ -84,30 +133,6 @@ EntraTopology is a **read-only Microsoft Entra inventory and topology engine** b
 ![Tenant Change Detection overview](Docs/Assets/tenant-change-detection.png)
 </details>
 
-## Capabilities
-
-EntraTopology currently models:
-
-- users, groups, applications, service principals, devices and directory roles;
-- group membership and ownership;
-- application and service-principal ownership;
-- app registration ↔ enterprise application instantiation;
-- application secrets and certificate metadata as credential nodes;
-- requested API permissions;
-- granted application permissions/app-role assignments;
-- delegated OAuth consent relationships;
-- device registered owners;
-- active directory-role assignments;
-- typed resolution of unresolved directory principals and role definitions;
-- Microsoft first-party, tenant-owned, external and managed-identity service-principal classification;
-- optional Microsoft first-party enterprise-application exclusion while retaining referenced API-resource nodes;
-- optional `signInActivity` and risky-user enrichment;
-- coverage-aware security signals and deterministic recommendations;
-- runtime telemetry, diagnostics and evidence provenance;
-- optional scheduled monitoring from the repository `Monitoring/` directory.
-
-The HTML report is topology-first: compact inventory composition, relationship-flow visualization, deterministic administrator Quick Answers, interactive topology inspection, grouped security context, coverage state, and collapsible runtime/evidence detail.
-
 ## Requirements
 
 - PowerShell 7.2 or later
@@ -137,45 +162,6 @@ Grant only the permissions needed for the capabilities you intend to collect.
 For complete group topology, EntraTopology also correlates service-principal membership and ownership through supported Microsoft Graph v1.0 reverse relationships. `Application.Read.All` or `Directory.Read.All` must therefore be available to close the known v1.0 service-principal omissions. `Member.Read.Hidden` is required only when hidden-membership groups exist; without it, group-membership coverage is reported as `Partial` rather than falsely `Complete`.
 
 For tenant-wide delegated OAuth grants, `Directory.Read.All` is the baseline read permission used by EntraTopology. Higher-privilege alternatives such as `DelegatedPermissionGrant.ReadWrite.All` or `Directory.ReadWrite.All` are accepted when already present, but are not required for normal read-only operation.
-
-## Quick start
-
-Clone the repository after publication:
-
-```powershell
-git clone https://github.com/0xDarknightHacks/EntraTopology.git
-cd .\EntraTopology
-
-Install-Module Microsoft.Graph.Authentication -Scope CurrentUser
-Import-Module .\EntraTopology.psd1 -Force
-```
-
-For the preferred stored app-only workflow, configure identifiers in:
-
-```text
-~/.entra-topology/config.json
-```
-
-Example:
-
-```json
-{
-  "TenantId": "<tenant-id>",
-  "ClientId": "<application-client-id>"
-}
-```
-
-Do **not** store the client secret in that file. By default, EntraTopology reads `EntraTopologyGraphClientSecret` from the SecretManagement vault `EntraTopologyVault`.
-
-Run the complete workflow:
-
-```powershell
-Invoke-EntraTopology -ExcludeMicrosoftFirstPartyApps -Verbose
-```
-
-The command connects when needed, collects the tenant, builds the topology, attaches security context and recommendations, writes artifacts, generates the report, and disconnects only a Graph session it created.
-
-> Never commit tenant identifiers, secrets, snapshots, topology exports, HTML reports, diagnostics, local authentication configuration, or other tenant-derived runtime artifacts.
 
 ## Authentication
 
@@ -255,6 +241,52 @@ Use `Compare-EntraTopologyGraph` with two canonical graph versions to identify s
 The optional [`Monitoring/`](Monitoring/) directory is a scheduled monitoring/notification layer over the canonical EntraTopology collection and semantic comparison pipeline. It compares each healthy graph to the last promoted baseline and can notify administrators only when changes meet a configured severity threshold. Runtime state is created under `C:\ProgramData\EntraTopologyMonitor` and remains outside the repository.
 
 See [Monitoring/README.md](Monitoring/README.md) for certificate, ProgramData, Exchange Application RBAC, and Scheduled Task setup.
+
+## Technical scope
+
+EntraTopology currently models:
+
+- users, groups, applications, service principals, devices and directory roles;
+- group membership and ownership;
+- application and service-principal ownership;
+- app registration ↔ enterprise application instantiation;
+- application secrets and certificate metadata as credential nodes;
+- requested API permissions;
+- granted application permissions/app-role assignments;
+- delegated OAuth consent relationships;
+- device registered owners;
+- active directory-role assignments;
+- typed resolution of unresolved directory principals and role definitions;
+- Microsoft first-party, tenant-owned, external and managed-identity service-principal classification;
+- optional Microsoft first-party enterprise-application exclusion while retaining referenced API-resource nodes;
+- optional `signInActivity` and risky-user enrichment;
+- coverage-aware security signals and deterministic recommendations;
+- runtime telemetry, diagnostics and evidence provenance;
+- optional scheduled monitoring from the repository `Monitoring/` directory.
+
+The HTML report is topology-first: compact inventory composition, relationship-flow visualization, deterministic administrator Quick Answers, interactive topology inspection, grouped security context, coverage state, and collapsible runtime/evidence detail.
+
+## How it works
+
+The practical workflow above is implemented as a collect-once topology pipeline.
+
+### Collect → Correlate → Explore
+
+| Capability | What it provides |
+|---|---|
+| Portable snapshots | Collected tenant state that can be processed again without Microsoft Graph |
+| Canonical topology | Stable nodes and relationship edges across users, groups, applications, service principals, devices and directory roles |
+| Application topology | App registrations, enterprise applications, credentials, requested permissions, granted app roles and delegated consent |
+| Identity context | Ownership, membership, registered ownership and active directory-role relationships |
+| Security context | Coverage-aware observations such as ownerless objects, privileged ownership, risky identities, stale devices and credential expiry |
+| Recommendations | Deterministic remediation guidance linked to supported security-context signals |
+| Evidence | Provenance references connecting topology relationships and observations to collection evidence |
+| Offline exploration | Self-contained HTML topology explorer with filtering, drill-down, Quick Answers, relationship flow and Entra portal navigation |
+| Query and comparison | Local node/path queries and semantic graph comparison across versions |
+| Optional monitoring | Scheduled certificate-authenticated collection, semantic drift comparison and severity-based notification |
+| Interoperability | JSON, GraphML and OpenGraph-shaped exports |
+
+> **Not a posture/compliance scanner or attack-path engine.** EntraTopology exposes deterministic tenant topology and evidence-backed context. It does not produce a tenant score or claim that observed access is unnecessary without an external expected-access baseline.
 
 ## Interactive report
 

@@ -1,30 +1,12 @@
 Set-StrictMode -Version Latest
 
 $privateFiles = @(
-    'Private/Telemetry/Telemetry.Common.ps1',
-    'Private/Diagnostics/Diagnostics.Common.ps1',
-    'Private/Cli/Cli.Common.ps1',
-    'Private/Graph/GraphContext.Common.ps1',
-    'Private/Graph/Invoke-EntraTopologyGraphRequest.ps1',
-    'Private/Graph/Invoke-EntraTopologyGraphBatch.ps1',
-    'Private/Model/TopologyModel.ps1',
-    'Private/Navigation/Portal.Common.ps1',
-    'Private/Collectors/Collector.Common.ps1',
-    'Private/Collectors/Get-EntraTopologyUsers.ps1',
-    'Private/Collectors/Get-EntraTopologyGroups.ps1',
-    'Private/Collectors/Get-EntraTopologyApplications.ps1',
-    'Private/Collectors/Get-EntraTopologyDevices.ps1',
-    'Private/Collectors/Get-EntraTopologyRoles.ps1',
-    'Private/Collectors/Resolve-EntraTopologyDirectoryObjects.ps1',
-    'Private/Collectors/Invoke-EntraTopologyCollection.ps1',
-    'Private/Snapshot/Snapshot.Common.ps1',
-    'Private/Normalization/ConvertTo-EntraTopologyGraph.ps1',
-    'Private/Signals/Add-EntraTopologySignals.ps1',
-    'Private/Recommendations/Recommendations.Common.ps1',
-    'Private/Comparison/Comparison.Common.ps1',
-    'Private/Query/GraphQuery.Common.ps1',
-    'Private/Export/Export.Common.ps1',
-    'Private/Reporting/Report.Common.ps1'
+    'Private/Common.ps1',
+    'Private/Graph.ps1',
+    'Private/Collection.ps1',
+    'Private/Topology.ps1',
+    'Private/Comparison.ps1',
+    'Private/Reporting.ps1'
 )
 
 $publicFiles = @(
