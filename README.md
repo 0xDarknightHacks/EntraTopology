@@ -16,6 +16,16 @@ EntraTopology turns tenant-wide Entra objects and relationships into an interact
 
 </div>
 
+<p align="center">
+  <img src="./Docs/Assets/EntraTopology.gif"
+       alt="EntraTopology interactive Microsoft Entra tenant topology and relationship exploration"
+       width="100%">
+</p>
+
+<p align="center">
+  <sub>Explore tenant-wide Entra relationships, investigate connected objects, and review changes from a self-contained topology.</sub>
+</p>
+
 ---
 
 ## Why use it
